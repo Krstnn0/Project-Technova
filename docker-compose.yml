@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # 1. Aplikasi
+  app:
+    build: .
+    container_name: technova-app
+    ports:
+      - "5000:5000"
+    labels:
+      logging: "promtail"
+    restart: always
+
+  # 2. Prometheus 
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: technova-prometheus
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    restart: always
+
+  # 3. Loki 
+  loki:
+    image: grafana/loki:2.8.2
+    container_name: technova-loki
+    volumes:
+      - ./config/loki-config.yml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    restart: always
+
+  # 4. Promtail 
+  promtail:
+    image: grafana/promtail:2.8.2
+    container_name: technova-promtail
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/promtail-config.yml:/etc/promtail/config.yml
+    restart: always
+
+  # 5. Grafana
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: technova-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: always
